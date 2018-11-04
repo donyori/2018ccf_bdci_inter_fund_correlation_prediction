@@ -105,3 +105,6 @@ venv.bak/
 
 # PyCharm
 .idea/
+
+# local backup
+local_backup/
