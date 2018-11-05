@@ -3,7 +3,7 @@ import re
 
 from tensorflow import keras
 
-from constants import PROJECT_HOME
+from constants import PROJECT_HOME, EPSILON
 from data.data_generator import SquareExDataGenerator
 from data.dataset_name import DATASET_NAME_TRAIN
 from .callback import ModelSaver, EpochNumberSaver
@@ -36,7 +36,10 @@ config = {
 }
 
 
-def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1, initial_epoch=0):
+def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0, end_epoch=1):
+    if initial_epoch > end_epoch:
+        print('initial_epoch(%d) > end_epoch(%d).')
+        return None
     if 'batch_size' not in config:
         config['batch_size'] = default_batch_size
     if 'does_shuffle' not in config:
@@ -61,7 +64,7 @@ def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1,
                 cb_str = re.sub(pattern=_remove_pattern, repl='', string=cb_str)
                 if cb_str == 'earlystopping':
                     callbacks.append(keras.callbacks.EarlyStopping(
-                        monitor=MAIN_OUTPUT_NAME+'_loss', min_delta=1e-4, patience=2, verbose=1))
+                        monitor=MAIN_OUTPUT_NAME+'_loss', min_delta=EPSILON, patience=3, verbose=1))
                 elif cb_str == 'tensorboard':
                     callbacks.append(keras.callbacks.TensorBoard(
                         log_dir=os.path.join(LOG_DIRECTORY, model_name),
@@ -87,7 +90,7 @@ def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1,
     )
     history = model.fit_generator(
         generator=generator,
-        epochs=epoch_number + initial_epoch,
+        epochs=end_epoch,
         verbose=config['verbose'],
         callbacks=callbacks,
         max_queue_size=config['max_queue_size'],
@@ -98,7 +101,7 @@ def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1,
     return history
 
 
-def resume_training_model(model_name, row_start=None, row_end=None, epoch_number=1, custom_objects=None):
+def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1, custom_objects=None):
     if custom_objects is None:
         custom_objects = custom_metrics
     model = load_model(model_name=model_name, custom_objects=custom_objects, does_compile=True)
@@ -114,19 +117,19 @@ def resume_training_model(model_name, row_start=None, row_end=None, epoch_number
         model=model,
         row_start=row_start,
         row_end=row_end,
-        epoch_number=epoch_number,
         initial_epoch=initial_epoch,
+        end_epoch=end_epoch,
     )
     return history
 
 
-def resume_training_latest_model(row_start=None, row_end=None, epoch_number=1, custom_objects=None):
+def resume_training_latest_model(row_start=None, row_end=None, end_epoch=1, custom_objects=None):
     model_name = get_latest_version_model_name()
     history = resume_training_model(
         model_name=model_name,
         row_start=row_start,
         row_end=row_end,
-        epoch_number=epoch_number,
+        end_epoch=end_epoch,
         custom_objects=custom_objects,
     )
     return history

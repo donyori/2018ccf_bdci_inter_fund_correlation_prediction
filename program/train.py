@@ -7,14 +7,14 @@ def _main():
     parser = argparse.ArgumentParser(description='Arguments for training model.')
     parser.add_argument('-m', '--model', type=str, dest='model',
                         help='The name of the model to be trained.', default=None, required=False)
-    parser.add_argument('-e', '--epochs', type=int, dest='epochs',
-                        help='The number of epochs to train.', default=1, required=False)
+    parser.add_argument('-e', '--end_epoch', type=int, dest='end_epoch',
+                        help='The end epoch of train.', default=1, required=False)
     args = parser.parse_args()
     print('Start training.')
     if args.model is not None:
-        resume_training_model(model_name=args.model, epoch_number=args.epochs)
+        resume_training_model(model_name=args.model, end_epoch=args.end_epoch)
     else:
-        resume_training_latest_model(epoch_number=args.epochs)
+        resume_training_latest_model(end_epoch=args.end_epoch)
     print('Done.')
 
 
