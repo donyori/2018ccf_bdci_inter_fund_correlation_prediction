@@ -108,3 +108,9 @@ venv.bak/
 
 # local backup
 local_backup/
+
+# TensorBoard log
+log/
+
+# Model produced by the program
+model/
