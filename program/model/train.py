@@ -61,7 +61,7 @@ def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1,
                 cb_str = re.sub(pattern=_remove_pattern, repl='', string=cb_str)
                 if cb_str == 'earlystopping':
                     callbacks.append(keras.callbacks.EarlyStopping(
-                        monitor=MAIN_OUTPUT_NAME+'_loss', min_delta=1e-4, patience=2))
+                        monitor=MAIN_OUTPUT_NAME+'_loss', min_delta=1e-4, patience=2, verbose=1))
                 elif cb_str == 'tensorboard':
                     callbacks.append(keras.callbacks.TensorBoard(
                         log_dir=os.path.join(LOG_DIRECTORY, model_name),
