@@ -9,7 +9,8 @@ from constants import PROJECT_HOME, INDEX_RETURN_INDICATOR_NUMBER
 from data.combine_data import COMBINATION_COLUMN_RANGE_KEY_FUND_RETURN, \
     COMBINATION_COLUMN_RANGE_KEY_FUND_BENCHMARK_RETURN, COMBINATION_COLUMN_RANGE_KEY_INDEX_RETURN, \
     combination_column_range_map
-from data.load_dataset import DATASET_NAME_PREDICT, load_preprocessed_dataset_np
+from data.dataset_name import DATASET_NAME_PREDICT
+from data.load_dataset import load_preprocessed_dataset_np
 from data.preprocess import restore_correlation_from_min_max_normalize
 from model.constants import FUND1_RETURN_NAME, FUND1_BENCHMARK_RETURN_NAME, \
     FUND2_RETURN_NAME, FUND2_BENCHMARK_RETURN_NAME, INDEX_RETURN_NAME

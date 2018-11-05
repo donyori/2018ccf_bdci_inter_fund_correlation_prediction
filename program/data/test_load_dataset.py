@@ -3,9 +3,9 @@ import unittest
 
 import numpy as np
 
+from .dataset_name import DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
 from .date_range import TEST_CORRELATION_DATE_RANGE
-from .load_dataset import load_dataset_np, load_preprocessed_dataset_np, \
-    DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
+from .load_dataset import load_dataset_np, load_preprocessed_dataset_np
 from .path import TRAIN_COMBINATION_FILE_PATH, TEST_COMBINATION_FILE_PATH
 from .preprocess import min_max_normalize
 

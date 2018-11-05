@@ -1,5 +1,5 @@
 from data.data_generator import DataGenerator
-from data.load_dataset import DATASET_NAME_PREDICT
+from data.dataset_name import DATASET_NAME_PREDICT
 from .metric import custom_metrics
 from .save_and_load import load_model
 from .test import NoTrainedModelException

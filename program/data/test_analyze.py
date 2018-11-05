@@ -1,7 +1,7 @@
 import unittest
 
-from .load_dataset import DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
 from .analyze import show_statistics, show_statistics_on_every_fields
+from .dataset_name import DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
 
 
 class TestAnalyze(unittest.TestCase):

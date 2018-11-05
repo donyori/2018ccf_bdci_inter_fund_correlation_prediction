@@ -2,10 +2,11 @@ import unittest
 
 import numpy as np
 
-from .combine_data import combination_column_range_map, COMBINATION_COLUMN_RANGE_KEY_CORRELATION
-from .load_dataset import DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT, load_dataset_np
-from .preprocess import min_max_normalize, restore_correlation_from_min_max_normalize
 from .analyze import show_statistics_on_every_fields
+from .combine_data import combination_column_range_map, COMBINATION_COLUMN_RANGE_KEY_CORRELATION
+from .dataset_name import DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
+from .load_dataset import load_dataset_np
+from .preprocess import min_max_normalize, restore_correlation_from_min_max_normalize
 
 
 class TestPreprocess(unittest.TestCase):

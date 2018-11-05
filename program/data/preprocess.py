@@ -4,8 +4,8 @@ from constants import EPSILON
 from .combine_data import combination_column_range_map, COMBINATION_COLUMN_RANGE_KEY_FUND_RETURN, \
     COMBINATION_COLUMN_RANGE_KEY_FUND_BENCHMARK_RETURN, COMBINATION_COLUMN_RANGE_KEY_INDEX_RETURN, \
     COMBINATION_COLUMN_RANGE_KEY_CORRELATION
-from .load_dataset import load_dataset_np, DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT, \
-    UnknownDatasetNameException
+from .dataset_name import *
+from .load_dataset import load_dataset_np
 from .path import TRAIN_PREPROCESSED_DATA_FILE_PATH, TEST_PREPROCESSED_DATA_FILE_PATH, \
     PREDICT_PREPROCESSED_DATA_FILE_PATH
 

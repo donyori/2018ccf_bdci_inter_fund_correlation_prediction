@@ -1,5 +1,5 @@
 from data.data_generator import DataGenerator
-from data.load_dataset import DATASET_NAME_TEST
+from data.dataset_name import DATASET_NAME_TEST
 from .metric import custom_metrics
 from .save_and_load import load_model
 from .version.navi import get_rolling_window_size, get_latest_version_model_name

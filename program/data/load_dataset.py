@@ -2,13 +2,10 @@ import numpy as np
 
 from .combine_data import COMBINATION_COLUMN_NUMBER, \
     combination_column_range_map, COMBINATION_COLUMN_RANGE_KEY_INDEX_RETURN
+from .dataset_name import *
 from .date_range import TEST_CORRELATION_DATE_RANGE
 from .path import TRAIN_COMBINATION_FILE_PATH, TEST_COMBINATION_FILE_PATH, \
     TRAIN_PREPROCESSED_DATA_FILE_PATH, TEST_PREPROCESSED_DATA_FILE_PATH, PREDICT_PREPROCESSED_DATA_FILE_PATH
-
-DATASET_NAME_TRAIN = 'train'
-DATASET_NAME_TEST = 'test'
-DATASET_NAME_PREDICT = 'predict'
 
 
 def load_dataset_np(dataset_name):
@@ -69,9 +66,3 @@ def load_preprocessed_dataset_np(dataset_name):
     else:
         raise UnknownDatasetNameException(dataset_name)
     return dataset
-
-
-class UnknownDatasetNameException(ValueError):
-
-    def __init__(self, dataset_name):
-        super().__init__('dataset_name "%s" is unknown.' % dataset_name)

@@ -1,4 +1,5 @@
-from data.preprocess import preprocess_data, DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
+from data.dataset_name import DATASET_NAME_TRAIN, DATASET_NAME_TEST, DATASET_NAME_PREDICT
+from data.preprocess import preprocess_data
 
 
 def _main():

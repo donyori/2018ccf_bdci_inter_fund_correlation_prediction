@@ -5,7 +5,7 @@ from tensorflow import keras
 
 from constants import PROJECT_HOME
 from data.data_generator import SquareExDataGenerator
-from data.load_dataset import DATASET_NAME_TRAIN
+from data.dataset_name import DATASET_NAME_TRAIN
 from .callback import ModelSaver, EpochNumberSaver
 from .compile import compile_model
 from .constants import MAIN_OUTPUT_NAME
