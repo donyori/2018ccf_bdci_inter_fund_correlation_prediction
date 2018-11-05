@@ -18,24 +18,39 @@ LOG_DIRECTORY = os.path.join(PROJECT_HOME, 'log')
 _remove_pattern = re.compile(r'[\s|_]+', flags=re.UNICODE)
 
 default_batch_size = 200
+default_does_shuffle = True
 default_callbacks = ['model_saver', 'epoch_number_saver', 'tensor_board', 'early_stopping']
 default_max_queue_size = 10
+default_does_use_multiprocessing = False
+default_worker_number = 4
+default_verbose = 2
 
 config = {
     'batch_size': default_batch_size,
+    'does_shuffle': default_does_shuffle,
     'callbacks': default_callbacks,
     'max_queue_size': default_max_queue_size,
+    'does_use_multiprocessing': default_does_use_multiprocessing,
+    'worker_number': default_worker_number,
+    'verbose': default_verbose,
 }
 
 
-def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1, initial_epoch=0,
-                worker_number=1, verbose=2):
+def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1, initial_epoch=0):
     if 'batch_size' not in config:
         config['batch_size'] = default_batch_size
+    if 'does_shuffle' not in config:
+        config['does_shuffle'] = default_does_shuffle
     if 'callbacks' not in config:
         config['callbacks'] = default_callbacks
     if 'max_queue_size' not in config:
         config['max_queue_size'] = default_max_queue_size
+    if 'does_use_multiprocessing' not in config:
+        config['does_use_multiprocessing'] = default_does_use_multiprocessing
+    if 'worker_number' not in config:
+        config['worker_number'] = default_worker_number
+    if 'verbose' not in config:
+        config['verbose'] = default_verbose
     callbacks = list() if config['callbacks'] is not None else None
     if callbacks is not None:
         for cb in config['callbacks']:
@@ -68,23 +83,22 @@ def train_model(model_name, model, row_start=None, row_end=None, epoch_number=1,
         row_start=row_start,
         row_end=row_end,
         max_batch_size=config['batch_size'],
-        does_shuffle=True,
+        does_shuffle=config['does_shuffle'],
     )
     history = model.fit_generator(
         generator=generator,
         epochs=epoch_number + initial_epoch,
-        verbose=verbose,
+        verbose=config['verbose'],
         callbacks=callbacks,
         max_queue_size=config['max_queue_size'],
-        use_multiprocessing=False,
-        workers=worker_number,
+        use_multiprocessing=config['does_use_multiprocessing'],
+        workers=config['worker_number'],
         initial_epoch=initial_epoch,
     )
     return history
 
 
-def resume_training_model(model_name, row_start=None, row_end=None, epoch_number=1,
-                          worker_number=1, verbose=2, custom_objects=None):
+def resume_training_model(model_name, row_start=None, row_end=None, epoch_number=1, custom_objects=None):
     if custom_objects is None:
         custom_objects = custom_metrics
     model = load_model(model_name=model_name, custom_objects=custom_objects, does_compile=True)
@@ -102,22 +116,17 @@ def resume_training_model(model_name, row_start=None, row_end=None, epoch_number
         row_end=row_end,
         epoch_number=epoch_number,
         initial_epoch=initial_epoch,
-        worker_number=worker_number,
-        verbose=verbose,
     )
     return history
 
 
-def resume_training_latest_model(row_start=None, row_end=None, epoch_number=1,
-                                 worker_number=1, verbose=2, custom_objects=None):
+def resume_training_latest_model(row_start=None, row_end=None, epoch_number=1, custom_objects=None):
     model_name = get_latest_version_model_name()
     history = resume_training_model(
         model_name=model_name,
         row_start=row_start,
         row_end=row_end,
         epoch_number=epoch_number,
-        worker_number=worker_number,
-        verbose=verbose,
         custom_objects=custom_objects,
     )
     return history

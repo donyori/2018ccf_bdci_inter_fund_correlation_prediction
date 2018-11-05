@@ -7,18 +7,30 @@ from .version.navi import get_rolling_window_size, get_latest_version_model_name
 
 default_batch_size = 199
 default_max_queue_size = 10
+default_does_use_multiprocessing = False
+default_worker_number = 4
+default_verbose = 1
 
 config = {
     'batch_size': default_batch_size,
     'max_queue_size': default_max_queue_size,
+    'does_use_multiprocessing': default_does_use_multiprocessing,
+    'worker_number': default_worker_number,
+    'verbose': default_verbose,
 }
 
 
-def predict(model_name, model=None, row_start=None, row_end=None, worker_number=1, verbose=1, custom_objects=None):
+def predict(model_name, model=None, row_start=None, row_end=None, custom_objects=None):
     if 'batch_size' not in config:
         config['batch_size'] = default_batch_size
     if 'max_queue_size' not in config:
         config['max_queue_size'] = default_max_queue_size
+    if 'does_use_multiprocessing' not in config:
+        config['does_use_multiprocessing'] = default_does_use_multiprocessing
+    if 'worker_number' not in config:
+        config['worker_number'] = default_worker_number
+    if 'verbose' not in config:
+        config['verbose'] = default_verbose
     if model is None:
         if custom_objects is None:
             custom_objects = custom_metrics
@@ -41,45 +53,39 @@ def predict(model_name, model=None, row_start=None, row_end=None, worker_number=
     result = model.predict_generator(
         generator=generator,
         max_queue_size=config['max_queue_size'],
-        use_multiprocessing=False,
-        workers=worker_number,
-        verbose=verbose,
+        use_multiprocessing=config['does_use_multiprocessing'],
+        workers=config['worker_number'],
+        verbose=config['verbose'],
     )
     return result
 
 
-def predict_last_row(model_name, worker_number=1, verbose=1, custom_objects=None):
+def predict_last_row(model_name, custom_objects=None):
     rolling_window_size = get_rolling_window_size(model_name=model_name)
     row_start = -rolling_window_size
     result = predict(
         model_name=model_name,
         row_start=row_start,
-        worker_number=worker_number,
-        verbose=verbose,
         custom_objects=custom_objects,
     )
     return result
 
 
-def predict_using_latest_model(row_start=None, row_end=None, worker_number=1, verbose=1, custom_objects=None):
+def predict_using_latest_model(row_start=None, row_end=None, custom_objects=None):
     model_name = get_latest_version_model_name()
     result = predict(
         model_name=model_name,
         row_start=row_start,
         row_end=row_end,
-        worker_number=worker_number,
-        verbose=verbose,
         custom_objects=custom_objects,
     )
     return result
 
 
-def predict_last_row_using_latest_model(worker_number=1, verbose=1, custom_objects=None):
+def predict_last_row_using_latest_model(custom_objects=None):
     model_name = get_latest_version_model_name()
     result = predict_last_row(
         model_name=model_name,
-        worker_number=worker_number,
-        verbose=verbose,
         custom_objects=custom_objects,
     )
     return result
