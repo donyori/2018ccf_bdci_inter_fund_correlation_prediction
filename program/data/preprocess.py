@@ -19,7 +19,7 @@ min_max_map = {
     MIN_MAX_KEY_FUND_RETURN: (-0.1, 0.1),
     MIN_MAX_KEY_FUND_BENCHMARK_RETURN: (-0.1, 0.1),
     MIN_MAX_KEY_INDEX_RETURN: (-0.1, 0.1),
-    MIN_MAX_KEY_CORRELATION: (-1.0, 1.0),
+    MIN_MAX_KEY_CORRELATION: (-1., 1.),
     MIN_MAX_KEY_TARGET: (0.1, 0.9),  # To avoid saturation Basheer & Najmeer (2000) recommend the range 0.1 and 0.9.
 }
 
@@ -40,11 +40,11 @@ def min_max_normalize(dataset, does_overwrite=False):
         if max_sub_min < EPSILON:
             max_sub_min = EPSILON
         factor = (target_max - target_min) / max_sub_min
-        if min != 0.0:
+        if min != 0.:
             sub_dataset -= min
-        if factor != 1.0:
+        if factor != 1.:
             sub_dataset *= factor
-        if target_min != 0.0:
+        if target_min != 0.:
             sub_dataset += target_min
         # Equivalent to: sub_dataset[:] = (sub_dataset - min) / max_sub_min * (target_max - target_min) + target_min
     return dataset
@@ -61,11 +61,11 @@ def restore_correlation_from_min_max_normalize(correlation, does_overwrite=False
     if max_sub_min < EPSILON:
         max_sub_min = EPSILON
     factor = (target_max - target_min) / max_sub_min
-    if min != 0.0:
+    if min != 0.:
         correlation -= min
-    if factor != 1.0:
+    if factor != 1.:
         correlation *= factor
-    if target_min != 0.0:
+    if target_min != 0.:
         correlation += target_min
     return correlation
 

@@ -12,7 +12,7 @@ class TestSaveAndLoad(unittest.TestCase):
     def test_save_model(self):
         model = build_latest_version_model()
         print('build finish.')
-        model.compile(optimizer='rmsprop', loss='mse', loss_weights={MAIN_OUTPUT_NAME: 1.0, AUXILIARY_OUTPUT_NAME: 0.2})
+        model.compile(optimizer='rmsprop', loss='mse', loss_weights={MAIN_OUTPUT_NAME: 1., AUXILIARY_OUTPUT_NAME: 0.2})
         print('compile finish.')
         save_model(model, get_latest_version_model_name(), does_include_optimizer=True)
         print('save finish.')

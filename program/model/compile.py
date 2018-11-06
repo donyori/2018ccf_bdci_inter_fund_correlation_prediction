@@ -3,7 +3,7 @@ from .metric import tmape, score, t_mae, t_mape, t_tmape, t_score
 
 default_optimizer = 'rmsprop'
 default_loss = 'mse'
-default_loss_weights = {MAIN_OUTPUT_NAME: 1.0, AUXILIARY_OUTPUT_NAME: 0.2}
+default_loss_weights = {MAIN_OUTPUT_NAME: 1., AUXILIARY_OUTPUT_NAME: 0.2}
 default_metrics = ['mae', 'mape', tmape, score, t_mae, t_mape, t_tmape, t_score]
 config = {
     'optimizer': default_optimizer,

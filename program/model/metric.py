@@ -21,7 +21,7 @@ def true_mean_absolute_percentage_error(y_true, y_pred):
 
 def targeted_mean_absolute_percentage_error(y_true, y_pred):
     result = K.mean(K.abs((y_pred - y_true) / K.clip(
-        (1.5 - y_true), min_value=K.epsilon(), max_value=None)), axis=-1) * 100.0
+        (1.5 - y_true), min_value=K.epsilon(), max_value=None)), axis=-1) * 100.
     return result
 
 
@@ -34,8 +34,8 @@ def true_targeted_mean_absolute_percentage_error(y_true, y_pred):
 
 def score(y_true, y_pred):
     mae_value = metrics.mae(y_true=y_true, y_pred=y_pred)
-    tmape_value = tmape(y_true=y_true, y_pred=y_pred) / 100.0
-    result = K.square(2.0 / (2.0 + mae_value + tmape_value))
+    tmape_value = tmape(y_true=y_true, y_pred=y_pred) / 100.
+    result = K.square(2. / (2. + mae_value + tmape_value))
     return result
 
 

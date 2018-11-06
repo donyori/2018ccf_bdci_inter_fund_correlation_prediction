@@ -23,7 +23,7 @@ class TestPreprocess(unittest.TestCase):
         ds = min_max_normalize(dataset, does_overwrite=False)
         c = ds[:, crr[0]:crr[1]]
         c = restore_correlation_from_min_max_normalize(c, does_overwrite=False)
-        self.assertEqual(np.allclose(correlation, c, rtol=0.0, atol=1e-4), True)
+        self.assertEqual(np.allclose(correlation, c, rtol=0., atol=1e-4), True)
 
     def __test_normalize_sub_process(self, dataset_name):
         print('Dataset:', dataset_name)
