@@ -83,7 +83,7 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
                     callbacks.append(keras.callbacks.EarlyStopping(
                         monitor=MAIN_OUTPUT_NAME+'_loss' if 'monitor' not in cb_params else cb_params['monitor'],
                         min_delta=EPSILON if 'min_delta' not in cb_params else float(cb_params['min_delta']),
-                        patience=3 if 'patience' not in cb_params else int(cb_params['patience']),
+                        patience=2 if 'patience' not in cb_params else int(cb_params['patience']),
                         verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
                     ))
                 elif cb_name == 'tensorboard':
