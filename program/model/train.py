@@ -6,7 +6,8 @@ from tensorflow import keras
 from constants import PROJECT_HOME, EPSILON
 from data.data_generator import SquareExDataGenerator
 from data.dataset_name import DATASET_NAME_TRAIN
-from .callback import ModelSaver, EpochNumberSaver
+from util import str_to_bool
+from .callback import ModelSaver, EpochNumberSaver, TimeLimiter
 from .compile import compile_model
 from .constants import MAIN_OUTPUT_NAME
 from .metric import custom_metrics
@@ -36,9 +37,9 @@ config = {
 }
 
 
-def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0, end_epoch=1):
-    if initial_epoch > end_epoch:
-        print('initial_epoch(%d) > end_epoch(%d).')
+def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0, end_epoch=1, time_limit=None):
+    if initial_epoch >= end_epoch:
+        print('initial_epoch(%d) >= end_epoch(%d).')
         return None
     if 'batch_size' not in config:
         config['batch_size'] = default_batch_size
@@ -58,27 +59,67 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
     if callbacks is not None:
         for cb in config['callbacks']:
             if isinstance(cb, keras.callbacks.Callback):
+                if isinstance(cb, TimeLimiter) and time_limit is not None:
+                    print('WARNING: time_limit is not None, ignored TimeLimiter in config.')
+                    continue
                 callbacks.append(cb)
             elif isinstance(cb, str):
                 cb_str = cb.lower()
                 cb_str = re.sub(pattern=_remove_pattern, repl='', string=cb_str)
-                if cb_str == 'earlystopping':
+                sep_idx = cb_str.find(':')
+                cb_params = dict()
+                if sep_idx >= 0:
+                    cb_name = cb_str[:sep_idx]
+                    cb_params_strs = cb_str[sep_idx+1:].split(',')
+                    for cb_param_str in cb_params_strs:
+                        eq_idx = cb_param_str.find('=')
+                        if eq_idx >= 0:
+                            cb_params[cb_param_str[:eq_idx]] = cb_param_str[eq_idx+1:]
+                        else:
+                            cb_params[cb_param_str] = '1'
+                else:
+                    cb_name = cb_str
+                if cb_name == 'earlystopping':
                     callbacks.append(keras.callbacks.EarlyStopping(
-                        monitor=MAIN_OUTPUT_NAME+'_loss', min_delta=EPSILON, patience=3, verbose=1))
-                elif cb_str == 'tensorboard':
-                    callbacks.append(keras.callbacks.TensorBoard(
-                        log_dir=os.path.join(LOG_DIRECTORY, model_name),
-                        batch_size=config['batch_size'],
-                        write_graph=True,
+                        monitor=MAIN_OUTPUT_NAME+'_loss' if 'monitor' not in cb_params else cb_params['monitor'],
+                        min_delta=EPSILON if 'min_delta' not in cb_params else float(cb_params['min_delta']),
+                        patience=3 if 'patience' not in cb_params else int(cb_params['patience']),
+                        verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
                     ))
-                elif cb_str == 'modelsaver':
-                    callbacks.append(ModelSaver(model_name=model_name, period=1, verbose=1))
-                elif cb_str == 'epochnumbersaver':
-                    callbacks.append(EpochNumberSaver(model_name=model_name, verbose=1))
+                elif cb_name == 'tensorboard':
+                    callbacks.append(keras.callbacks.TensorBoard(
+                        log_dir=os.path.join(LOG_DIRECTORY, model_name)
+                        if 'log_dir' not in cb_params else cb_params['log_dir'],
+                        batch_size=config['batch_size'],
+                        write_graph=True if 'write_graph' not in cb_params else str_to_bool(cb_params['write_graph']),
+                    ))
+                elif cb_name == 'modelsaver':
+                    callbacks.append(ModelSaver(
+                        model_name=model_name,
+                        period=1 if 'period' not in cb_params else int(cb_params['period']),
+                        verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
+                    ))
+                elif cb_name == 'epochnumbersaver':
+                    callbacks.append(EpochNumberSaver(
+                        model_name=model_name,
+                        verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
+                    ))
+                elif cb_name == 'timelimiter':
+                    if time_limit is not None:
+                        print('WARNING: time_limit is not None, ignored TimeLimiter in config.')
+                        continue
+                    if 'limit' not in cb_params:
+                        raise ValueError("TimeLimiter's parameter limit is missed.")
+                    callbacks.append(TimeLimiter(
+                        limit=cb_params['limit'],
+                        verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
+                    ))
                 else:
                     raise UnknownCallbackNameException(cb)
             else:
                 raise TypeError('Callback must be an instance of keras.callbacks.Callback or a callback name(string).')
+    if time_limit is not None:
+        callbacks.append(TimeLimiter(limit=time_limit, verbose=1))
     rolling_window_size = get_rolling_window_size(model_name)
     generator = SquareExDataGenerator(
         dataset_name=DATASET_NAME_TRAIN,
@@ -101,7 +142,7 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
     return history
 
 
-def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1, custom_objects=None):
+def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1, time_limit=None, custom_objects=None):
     if custom_objects is None:
         custom_objects = custom_metrics
     model = load_model(model_name=model_name, custom_objects=custom_objects, does_compile=True)
@@ -119,17 +160,19 @@ def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1,
         row_end=row_end,
         initial_epoch=initial_epoch,
         end_epoch=end_epoch,
+        time_limit=time_limit,
     )
     return history
 
 
-def resume_training_latest_model(row_start=None, row_end=None, end_epoch=1, custom_objects=None):
+def resume_training_latest_model(row_start=None, row_end=None, end_epoch=1, time_limit=None, custom_objects=None):
     model_name = get_latest_version_model_name()
     history = resume_training_model(
         model_name=model_name,
         row_start=row_start,
         row_end=row_end,
         end_epoch=end_epoch,
+        time_limit=time_limit,
         custom_objects=custom_objects,
     )
     return history
