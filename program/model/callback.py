@@ -76,8 +76,14 @@ class TimeLimiter(keras.callbacks.Callback):
 
     def __parse_limit(self):
         if isinstance(self.limit, str):
-            self.limit = timeparse(self.limit)
+            try:
+                self.limit = float(self.limit)
+                self.limit *= 60.
+            except ValueError:
+                self.limit = timeparse(self.limit)
         elif isinstance(self.limit, timedelta):
             self.limit = self.limit.total_seconds()
+        if self.limit is None:
+            raise ValueError('TimeLimiter: Cannot parse limit.')
         if not isinstance(self.limit, float):
             self.limit = float(self.limit)
