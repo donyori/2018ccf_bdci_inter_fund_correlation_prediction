@@ -2,16 +2,17 @@ import os
 import re
 
 from tensorflow import keras
+from tensorflow import logging
 
 from constants import PROJECT_HOME, EPSILON
 from data.data_generator import SquareExDataGenerator
 from data.dataset_name import DATASET_NAME_TRAIN
 from util import str_to_bool
-from .callback import ModelSaver, EpochNumberSaver, TimeLimiter
+from .callback import ModelSaver, EpochNumberSaver, BestInfoSaver, TimeLimiter
 from .compile import compile_model
 from .constants import MAIN_OUTPUT_NAME
 from .metric import custom_metrics
-from .save_and_load import load_model, load_epoch_number
+from .save_and_load import load_model, load_last_epoch_number, load_best_info
 from .version.navi import get_rolling_window_size, build_model, get_latest_version_model_name
 
 LOG_DIRECTORY = os.path.join(PROJECT_HOME, 'log')
@@ -20,11 +21,13 @@ _remove_pattern = re.compile(r'[\s|_]+', flags=re.UNICODE)
 
 default_batch_size = 200
 default_does_shuffle = True
-default_callbacks = ['model_saver', 'epoch_number_saver', 'tensor_board', 'early_stopping']
+default_callbacks = ['model_saver', 'epoch_number_saver', 'best_info_saver', 'tensor_board', 'early_stopping']
 default_max_queue_size = 10
 default_does_use_multiprocessing = False
 default_worker_number = 4
 default_verbose = 2
+
+default_monitored_loss_name = MAIN_OUTPUT_NAME + '_loss'
 
 config = {
     'batch_size': default_batch_size,
@@ -39,7 +42,7 @@ config = {
 
 def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0, end_epoch=1, time_limit=None):
     if initial_epoch >= end_epoch:
-        print('initial_epoch(%d) >= end_epoch(%d).')
+        logging.error('initial_epoch(%d) >= end_epoch(%d).')
         return None
     if 'batch_size' not in config:
         config['batch_size'] = default_batch_size
@@ -60,7 +63,7 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
         for cb in config['callbacks']:
             if isinstance(cb, keras.callbacks.Callback):
                 if isinstance(cb, TimeLimiter) and time_limit is not None:
-                    print('WARNING: time_limit is not None, ignored TimeLimiter in config.')
+                    logging.warning('train_model: parameter time_limit is not None, ignored TimeLimiter in config.')
                     continue
                 callbacks.append(cb)
             elif isinstance(cb, str):
@@ -80,11 +83,18 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
                 else:
                     cb_name = cb_str
                 if cb_name == 'earlystopping':
+                    es_monitor = default_monitored_loss_name if 'monitor' not in cb_params else cb_params['monitor']
+                    if 'baseline' not in cb_params:
+                        _, es_baseline = load_best_info(model_name=model_name, monitor_name=es_monitor)
+                    else:
+                        es_baseline = float(cb_params['baseline'])
                     callbacks.append(keras.callbacks.EarlyStopping(
-                        monitor=MAIN_OUTPUT_NAME+'_loss' if 'monitor' not in cb_params else cb_params['monitor'],
+                        monitor=es_monitor,
                         min_delta=EPSILON if 'min_delta' not in cb_params else float(cb_params['min_delta']),
                         patience=2 if 'patience' not in cb_params else int(cb_params['patience']),
                         verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
+                        mode='min' if 'mode' not in cb_params else cb_params['mode'],
+                        baseline=es_baseline,
                     ))
                 elif cb_name == 'tensorboard':
                     callbacks.append(keras.callbacks.TensorBoard(
@@ -104,9 +114,22 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
                         model_name=model_name,
                         verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
                     ))
+                elif cb_name == 'bestinfosaver':
+                    bi_monitor = default_monitored_loss_name if 'monitor' not in cb_params else cb_params['monitor']
+                    if 'baseline' not in cb_params:
+                        _, bi_baseline = load_best_info(model_name=model_name, monitor_name=bi_monitor)
+                    else:
+                        bi_baseline = float(cb_params['baseline'])
+                    callbacks.append(BestInfoSaver(
+                        model_name=model_name,
+                        monitor=bi_monitor,
+                        mode='min' if 'mode' not in cb_params else cb_params['mode'],
+                        baseline=bi_baseline,
+                        verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
+                    ))
                 elif cb_name == 'timelimiter':
                     if time_limit is not None:
-                        print('WARNING: time_limit is not None, ignored TimeLimiter in config.')
+                        logging.warning('train_model: parameter time_limit is not None, ignored TimeLimiter in config.')
                         continue
                     if 'limit' not in cb_params:
                         raise ValueError("TimeLimiter's parameter limit is missed.")
@@ -145,9 +168,9 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
 def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1, time_limit=None, custom_objects=None):
     if custom_objects is None:
         custom_objects = custom_metrics
-    model = load_model(model_name=model_name, custom_objects=custom_objects, does_compile=True)
-    if model is not None:
-        epoch = load_epoch_number(model_name=model_name)
+    epoch = load_last_epoch_number(model_name=model_name)
+    if epoch >= 0:
+        model = load_model(model_name=model_name, epoch=epoch, custom_objects=custom_objects, does_compile=True)
         initial_epoch = epoch + 1
     else:
         model = build_model(model_name=model_name)

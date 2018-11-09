@@ -1,3 +1,5 @@
+from tensorflow import logging
+
 from data.data_generator import DataGenerator
 from data.dataset_name import DATASET_NAME_PREDICT
 from .metric import custom_metrics
@@ -48,7 +50,9 @@ def predict(model_name, model=None, row_start=None, row_end=None, custom_objects
     )
     snpr = generator.get_sample_number_per_row()
     if config['batch_size'] % snpr != 0:
-        print('WARNING: batch_size(%d) cannot divide %d. Some inputs will be ignored.' % (config['batch_size'], snpr))
+        logging.warning('predict: batch_size(%d) cannot divide %d. '
+                        'Some inputs will be ignored.',
+                        config['batch_size'], snpr)
 
     result = model.predict_generator(
         generator=generator,
