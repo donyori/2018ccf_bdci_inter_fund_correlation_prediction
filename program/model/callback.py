@@ -46,7 +46,7 @@ class EpochNumberSaver(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         save_last_epoch_number(model_name=self.model_name, epoch=epoch)
         if self.verbose > 0:
-            print('Epoch %d: save the epoch number successfully.' % epoch + 1)
+            print('Epoch %d: save the epoch number successfully.' % (epoch + 1))
 
 
 class BestInfoSaver(keras.callbacks.Callback):
@@ -88,7 +88,7 @@ class BestInfoSaver(keras.callbacks.Callback):
             self.best = current
             save_best_info(model_name=self.model_name, epoch=epoch, monitor_name=self.monitor, monitor_value=self.best)
             if self.verbose > 0:
-                print('Epoch %d: save best info successfully.' % epoch + 1)
+                print('Epoch %d: save best info successfully.' % (epoch + 1))
         elif self.verbose > 0:
             print('Epoch %d: %s did NOT improve from %s' % (epoch + 1, self.monitor, self.best))
 
