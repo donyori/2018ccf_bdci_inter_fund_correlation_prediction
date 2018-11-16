@@ -22,17 +22,18 @@ _remove_pattern = re.compile(r'[\s|_]+', flags=re.UNICODE)
 default_batch_size = 200
 default_does_shuffle = True
 default_callbacks = ['model_saver', 'epoch_number_saver', 'best_info_saver', 'tensor_board', 'early_stopping']
+default_monitored_loss_name = MAIN_OUTPUT_NAME + '_loss'
 default_max_queue_size = 10
 default_does_use_multiprocessing = False
 default_worker_number = 4
 default_verbose = 2
 
-default_monitored_loss_name = MAIN_OUTPUT_NAME + '_loss'
 
 config = {
     'batch_size': default_batch_size,
     'does_shuffle': default_does_shuffle,
     'callbacks': default_callbacks,
+    'monitored_loss_name': default_monitored_loss_name,
     'max_queue_size': default_max_queue_size,
     'does_use_multiprocessing': default_does_use_multiprocessing,
     'worker_number': default_worker_number,
@@ -50,6 +51,8 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
         config['does_shuffle'] = default_does_shuffle
     if 'callbacks' not in config:
         config['callbacks'] = default_callbacks
+    if 'monitored_loss_name' not in config:
+        config['monitored_loss_name'] = default_monitored_loss_name
     if 'max_queue_size' not in config:
         config['max_queue_size'] = default_max_queue_size
     if 'does_use_multiprocessing' not in config:
@@ -83,7 +86,7 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
                 else:
                     cb_name = cb_str
                 if cb_name == 'earlystopping':
-                    es_monitor = default_monitored_loss_name if 'monitor' not in cb_params else cb_params['monitor']
+                    es_monitor = config['monitored_loss_name'] if 'monitor' not in cb_params else cb_params['monitor']
                     if 'baseline' not in cb_params:
                         _, es_baseline = load_best_info(model_name=model_name, monitor_name=es_monitor)
                     else:
@@ -115,7 +118,7 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
                         verbose=1 if 'verbose' not in cb_params else int(cb_params['verbose']),
                     ))
                 elif cb_name == 'bestinfosaver':
-                    bi_monitor = default_monitored_loss_name if 'monitor' not in cb_params else cb_params['monitor']
+                    bi_monitor = config['monitored_loss_name'] if 'monitor' not in cb_params else cb_params['monitor']
                     if 'baseline' not in cb_params:
                         _, bi_baseline = load_best_info(model_name=model_name, monitor_name=bi_monitor)
                     else:

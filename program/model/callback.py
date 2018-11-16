@@ -129,14 +129,15 @@ class TimeLimiter(keras.callbacks.Callback):
             self.model.stop_training = True
 
     def on_train_end(self, logs=None):
-        now = time.time()
-        et = timedelta(seconds=now - self.train_begin_time)
-        eta_of_next_epoch = timedelta(seconds=self.epoch_avg_seconds)
-        rtl = timedelta(seconds=self.limit - now)
         if self.stopped_epoch > 0 and self.verbose > 0:
+            now = time.time()
+            et_seconds = now - self.train_begin_time
+            et = timedelta(seconds=et_seconds)
+            next_epoch_eta = timedelta(seconds=self.epoch_avg_seconds)
+            tlr = timedelta(seconds=self.limit - et_seconds)
             print('Epoch %d: stop by time limiter. '
-                  'Elapsed time: %s, ETA of next epoch: %s, Remaining time limit: %s.' % (
-                    self.stopped_epoch + 1, et, eta_of_next_epoch, rtl))
+                  'Elapsed time: %s, Next epoch ETA: %s, Time limit remaining: %s.' % (
+                    self.stopped_epoch + 1, et, next_epoch_eta, tlr))
 
     def __parse_limit(self):
         if isinstance(self.limit, str):
