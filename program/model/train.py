@@ -41,7 +41,8 @@ config = {
 }
 
 
-def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0, end_epoch=1, time_limit=None):
+def train_model(model_name, model, row_start=None, row_end=None, step=None,
+                initial_epoch=0, end_epoch=1, time_limit=None):
     if initial_epoch >= end_epoch:
         logging.error('initial_epoch(%d) >= end_epoch(%d).')
         return None
@@ -152,6 +153,7 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
         rolling_window_size=rolling_window_size,
         row_start=row_start,
         row_end=row_end,
+        step=step,
         max_batch_size=config['batch_size'],
         does_shuffle=config['does_shuffle'],
     )
@@ -168,7 +170,8 @@ def train_model(model_name, model, row_start=None, row_end=None, initial_epoch=0
     return history
 
 
-def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1, time_limit=None, custom_objects=None):
+def resume_training_model(model_name, row_start=None, row_end=None, step=None,
+                          end_epoch=1, time_limit=None, custom_objects=None):
     if custom_objects is None:
         custom_objects = custom_metrics
     epoch = load_last_epoch_number(model_name=model_name)
@@ -184,6 +187,7 @@ def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1,
         model=model,
         row_start=row_start,
         row_end=row_end,
+        step=step,
         initial_epoch=initial_epoch,
         end_epoch=end_epoch,
         time_limit=time_limit,
@@ -191,12 +195,14 @@ def resume_training_model(model_name, row_start=None, row_end=None, end_epoch=1,
     return history
 
 
-def resume_training_latest_model(row_start=None, row_end=None, end_epoch=1, time_limit=None, custom_objects=None):
+def resume_training_latest_model(row_start=None, row_end=None, step=None,
+                                 end_epoch=1, time_limit=None, custom_objects=None):
     model_name = get_latest_version_model_name()
     history = resume_training_model(
         model_name=model_name,
         row_start=row_start,
         row_end=row_end,
+        step=step,
         end_epoch=end_epoch,
         time_limit=time_limit,
         custom_objects=custom_objects,

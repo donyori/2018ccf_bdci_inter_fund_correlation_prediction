@@ -17,7 +17,7 @@ class TestUtil(unittest.TestCase):
 
     def test_parse_index(self):
         for index in range(19900):
-            _, fund1_no, fund2_no, correlation_no = parse_index(index)
+            _, fund1_no, fund2_no, correlation_no = parse_index(index, step=1)
             self.assertEqual(correlation_no, index)
             self.assertEqual((fund1_no, fund2_no), _reverse_index_map[index])
 

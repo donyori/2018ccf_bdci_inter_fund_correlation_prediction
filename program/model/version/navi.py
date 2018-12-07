@@ -1,5 +1,6 @@
 from .ver1_0 import MODEL_NAME as MN1_0, ROLLING_WINDOW_SIZE as RWS1_0, build_model as bm1_0
 from .ver1_1 import MODEL_NAME as MN1_1, ROLLING_WINDOW_SIZE as RWS1_1, build_model as bm1_1
+from .ver1_2 import MODEL_NAME as MN1_2, ROLLING_WINDOW_SIZE as RWS1_2, build_model as bm1_2
 
 
 class ModelInfo(object):
@@ -35,6 +36,8 @@ def _init():
     info = ModelInfo(model_name=MN1_0, version_no='1.0', rolling_window_size=RWS1_0, build_model_fn=bm1_0)
     _model_info_map[info.model_name] = info
     info = ModelInfo(model_name=MN1_1, version_no='1.1', rolling_window_size=RWS1_1, build_model_fn=bm1_1)
+    _model_info_map[info.model_name] = info
+    info = ModelInfo(model_name=MN1_2, version_no='1.1', rolling_window_size=RWS1_2, build_model_fn=bm1_2)
     _model_info_map[info.model_name] = info
     _latest_version_model_info = info
 

@@ -12,10 +12,10 @@ def _build_first_index_in_every_row_list():
 _build_first_index_in_every_row_list()
 
 
-def parse_index(index):
+def parse_index(index, step=1):
     if not isinstance(index, int):
         index = int(index)
-    date_seq_no = index // 19900
+    date_seq_no = (index // 19900) * step
     correlation_no = index % 19900
     # Use binary search to get fund number:
     # FIXME: Consider to compute fund number directly.
@@ -63,10 +63,10 @@ def calculate_correlation_no(fund1_no, fund2_no):
     return correlation_no
 
 
-def parse_square_ex_index(index):
+def parse_square_ex_index(index, step=1):
     if not isinstance(index, int):
         index = int(index)
-    date_seq_no = index // 40000
+    date_seq_no = (index // 40000) * step
     index_rem = index % 40000
     fund1_no = index_rem // 200
     fund2_no = index_rem % 200

@@ -18,7 +18,7 @@ def build_model():
     fund2_attributes = keras.layers.concatenate(
         [fund2_return, fund2_benchmark_return], name='fund2_attributes')
 
-    fund_attributes_gru = keras.layers.GRU(2, name='fund_attributes_gru')
+    fund_attributes_gru = keras.layers.GRU(12, name='fund_attributes_gru')
 
     fund1_attributes_after_gru = fund_attributes_gru(fund1_attributes)
     fund2_attributes_after_gru = fund_attributes_gru(fund2_attributes)

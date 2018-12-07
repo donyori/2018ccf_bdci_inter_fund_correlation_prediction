@@ -25,15 +25,20 @@ _max_c = np.float32(min_max_map[MIN_MAX_KEY_TARGET][1])
 
 class BaseDataGenerator(keras.utils.Sequence):
 
-    def __init__(self, dataset_name, rolling_window_size, row_start=None, row_end=None,
+    def __init__(self, dataset_name, rolling_window_size, row_start=None, row_end=None, step=None,
                  max_batch_size=199, does_shuffle=True):
         if rolling_window_size <= 0:
             raise NonPositiveRollingWindowSizeException(rolling_window_size)
         if max_batch_size <= 0:
             raise NonPositiveBatchSizeException(max_batch_size)
+        if step is None:
+            step = 1
+        if step <= 0:
+            raise NonPositiveStepException(step)
         self._dataset_name = dataset_name.lower()
         self._is_for_prediction = (self._dataset_name == DATASET_NAME_PREDICT.lower())
         self._rolling_window_size = rolling_window_size
+        self._step = step
         self._batch_size = max_batch_size
         self._does_shuffle = does_shuffle
         self._dataset = load_preprocessed_dataset_np(self._dataset_name)
@@ -48,7 +53,7 @@ class BaseDataGenerator(keras.utils.Sequence):
         if self._rolling_window_size > self._row_number:
             raise RollingWindowSizeTooLargeException(self._rolling_window_size, self._row_number)
         snpr = self.get_sample_number_per_row()
-        self._sample_number = (self._row_number - self._rolling_window_size + 1) * snpr
+        self._sample_number = ((self._row_number - self._rolling_window_size + 1) // self._step) * snpr
         if self._batch_size is None or self._batch_size > self._sample_number:
             self._batch_size = self._sample_number
         self._index_sequence = list(range(self._sample_number))
@@ -92,6 +97,9 @@ class BaseDataGenerator(keras.utils.Sequence):
     def get_rolling_window_size(self):
         return self._rolling_window_size
 
+    def get_step(self):
+        return self._step
+
     def get_batch_size(self):
         return self._batch_size
 
@@ -122,13 +130,14 @@ class BaseDataGenerator(keras.utils.Sequence):
 
 class DataGenerator(BaseDataGenerator):
 
-    def __init__(self, dataset_name, rolling_window_size, row_start=None, row_end=None,
+    def __init__(self, dataset_name, rolling_window_size, row_start=None, row_end=None, step=None,
                  max_batch_size=199, does_shuffle=True):
         super().__init__(
             dataset_name=dataset_name,
             rolling_window_size=rolling_window_size,
             row_start=row_start,
             row_end=row_end,
+            step=step,
             max_batch_size=max_batch_size,
             does_shuffle=does_shuffle
         )
@@ -147,7 +156,7 @@ class DataGenerator(BaseDataGenerator):
         if output_dict is not None:
             c = output_dict[MAIN_OUTPUT_NAME]
         for i, index in enumerate(indexes, start=0):
-            date_seq_no, fund1_no, fund2_no, c_no = parse_index(index)
+            date_seq_no, fund1_no, fund2_no, c_no = parse_index(index, step=self.get_step())
             date_seq_end_no = date_seq_no + rws
             sub_dataset = self._get_sub_dataset(date_seq_no, date_seq_end_no)
             f1r[i] = np.expand_dims(sub_dataset[:, _frs+fund1_no], axis=-1)
@@ -161,13 +170,14 @@ class DataGenerator(BaseDataGenerator):
 
 class SquareExDataGenerator(BaseDataGenerator):
 
-    def __init__(self, dataset_name, rolling_window_size, row_start=None, row_end=None,
+    def __init__(self, dataset_name, rolling_window_size, row_start=None, row_end=None, step=None,
                  max_batch_size=200, does_shuffle=True):
         super().__init__(
             dataset_name=dataset_name,
             rolling_window_size=rolling_window_size,
             row_start=row_start,
             row_end=row_end,
+            step=step,
             max_batch_size=max_batch_size,
             does_shuffle=does_shuffle,
         )
@@ -186,7 +196,7 @@ class SquareExDataGenerator(BaseDataGenerator):
         if output_dict is not None:
             c = output_dict[MAIN_OUTPUT_NAME]
         for i, index in enumerate(indexes, start=0):
-            date_seq_no, fund1_no, fund2_no, c_no = parse_square_ex_index(index)
+            date_seq_no, fund1_no, fund2_no, c_no = parse_square_ex_index(index, step=self.get_step())
             date_seq_end_no = date_seq_no + rws
             sub_dataset = self._get_sub_dataset(date_seq_no, date_seq_end_no)
             f1r[i] = np.expand_dims(sub_dataset[:, _frs+fund1_no], axis=-1)
@@ -212,6 +222,12 @@ class RollingWindowSizeTooLargeException(ValueError):
     def __init__(self, rolling_window_size, row_number):
         super().__init__('rolling_window_size(%d) is larger than the number of rows(%d).' %
                          (rolling_window_size, row_number))
+
+
+class NonPositiveStepException(ValueError):
+
+    def __init__(self, step):
+        super().__init__('step(%d) is not positive.' % step)
 
 
 class NonPositiveBatchSizeException(ValueError):
